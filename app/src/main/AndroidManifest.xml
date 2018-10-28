@@ -31,7 +31,11 @@
         </activity>
 
         <activity android:name=".activity.SettingsActivity"
-            android:label="Settings"/>
+            android:label="Settings"
+            android:parentActivityName=".activity.DiscoveryActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activity.DiscoveryActivity"/>
+        </activity>
 
     </application>
 

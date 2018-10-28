@@ -40,6 +40,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MyViewHolder
     public void setMovieList(List<Movie> movieList) {
 
         this.movieList = movieList;
+        notifyDataSetChanged();
 
     }
 

@@ -2,6 +2,7 @@ package com.example.android.movieapp.activity;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -14,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -73,10 +75,11 @@ public class DiscoveryActivity extends AppCompatActivity
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
-
-        configChanged();
-
-        if (savedInstanceState==null){
+        adapter = new MovieAdapter(this, movieData);
+        recyclerView.setAdapter(adapter);
+//        configChanged();
+      columns=  calculateNoOfColumns(this);
+        if (savedInstanceState == null) {
             mGridLayoutManager = new GridLayoutManager(this, columns);
             recyclerView.setLayoutManager(mGridLayoutManager);
         }
@@ -91,14 +94,24 @@ public class DiscoveryActivity extends AppCompatActivity
 
     }
 
-    public void configChanged() {
+//    public void configChanged() {
+//
+//        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+//            columns = 2;
+//        } else {
+//
+//            columns = 4;
+//        }
+//    }
 
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            columns = 2;
-        } else {
-
-            columns = 4;
-        }
+    public static int calculateNoOfColumns(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        int scalingFactor = 200;
+        int noOfColumns = (int) (dpWidth / scalingFactor);
+        if(noOfColumns < 2)
+            noOfColumns = 2;
+        return noOfColumns;
     }
 
 
@@ -117,8 +130,7 @@ public class DiscoveryActivity extends AppCompatActivity
                     if (response.body() != null) {
                         List<Movie> movieList = response.body().getResults();
 
-                        movieData.clear();
-                        movieData.addAll(movieList);
+                        adapter.setMovieList(movieList);
 
                     }
                 }
@@ -155,8 +167,7 @@ public class DiscoveryActivity extends AppCompatActivity
                 public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                     if (response.body() != null) {
                         List<Movie> movieList = response.body().getResults();
-                        movieData.clear();
-                        movieData.addAll(movieList);
+                        adapter.setMovieList(movieList);
                     }
                 }
 
@@ -238,6 +249,7 @@ public class DiscoveryActivity extends AppCompatActivity
                         movie.setReleaseDate(entry.getReleaseDate());
                         movieData.add(movie);
                     }
+                    adapter.setMovieList(movieData);
                 }
 
 
@@ -279,7 +291,7 @@ public class DiscoveryActivity extends AppCompatActivity
 
             displayFavorites();
         }
-        recyclerView.setAdapter(new MovieAdapter(this, movieData));
+
 
     }
 }
