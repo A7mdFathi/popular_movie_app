@@ -55,10 +55,6 @@ public class DiscoveryActivity extends AppCompatActivity
     private ArrayList<Movie> movieData = new ArrayList<>();
 
 
-    private static final String LIST_STATE = "list-state";
-
-    private static final String BUNDLE_RECYCLER_LAYOUT = "recycler-layout";
-
     private GridLayoutManager mGridLayoutManager;
 
     MainViewModel viewModel;
@@ -98,14 +94,14 @@ public class DiscoveryActivity extends AppCompatActivity
     }
 
 
-    private void loadJSONMostPopular() {
+    private void loadMovies(String sortCriteria) {
 
-
+Log.e("system",sortCriteria);
         try {
 
             MovieService apiService =
                     Client.getClient().create(MovieService.class);
-            Call<MovieResponse> call = apiService.getPopularMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN);
+            Call<MovieResponse> call = apiService.getMovies(sortCriteria,BuildConfig.THE_MOVIE_DB_API_TOKEN);
             call.enqueue(new Callback<MovieResponse>() {
 
                 @Override
@@ -136,40 +132,6 @@ public class DiscoveryActivity extends AppCompatActivity
 
     }
 
-    private void loadJSONTopRated() {
-
-
-        try {
-
-            MovieService apiService =
-                    Client.getClient().create(MovieService.class);
-            Call<MovieResponse> call = apiService.getTopRatedMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN);
-            call.enqueue(new Callback<MovieResponse>() {
-
-                @Override
-                public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
-                    if (response.body() != null) {
-                        List<Movie> movieList = response.body().getResults();
-                        adapter.setMovieList(movieList);
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<MovieResponse> call, Throwable t) {
-
-                    Log.d("Error", t.getMessage());
-                    Toast.makeText(DiscoveryActivity.this, "Error fetching data!", Toast.LENGTH_SHORT).show();
-
-                }
-
-            });
-        } catch (Exception e) {
-            Log.d("Error", e.getMessage());
-            Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
-        }
-
-
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -242,22 +204,7 @@ public class DiscoveryActivity extends AppCompatActivity
 
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
 
-        outState.putParcelableArrayList(LIST_STATE, movieData);
-
-        outState.putParcelable(BUNDLE_RECYCLER_LAYOUT, recyclerView.getLayoutManager().onSaveInstanceState());
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        movieData = savedInstanceState.getParcelableArrayList(LIST_STATE);
-        recyclerView.getLayoutManager().onRestoreInstanceState(savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT));
-
-    }
 
     private void setupSharedPreferences(SharedPreferences sharedPreferences) {
 
@@ -265,11 +212,10 @@ public class DiscoveryActivity extends AppCompatActivity
         String prefValue = sharedPreferences.getString(this.getString(R.string.pref_sort_order_key),
                 this.getString(R.string.pref_sort_order_popular));
         if (prefValue.equals(this.getString(R.string.pref_sort_order_popular))) {
+            loadMovies(this.getString(R.string.pref_popular_value));
 
-            loadJSONMostPopular();
         } else if (prefValue.equals(this.getString(R.string.pref_sort_order_top_rated))) {
-
-            loadJSONTopRated();
+            loadMovies(this.getString(R.string.pref_top_rated_value));
         } else {
 
             displayFavorites();
