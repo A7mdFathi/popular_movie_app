@@ -55,6 +55,10 @@ public class DiscoveryActivity extends AppCompatActivity
     private MovieAdapter adapter;
     private List<Movie> movieData = new ArrayList<>();
 
+    private final String DATA_STATE="saved_state";
+    private final String LIST_STATE="saved_state";
+    private Parcelable savedRecyclerViewState;
+    GridLayoutManager mGridLayoutManager;
     MainViewModel viewModel;
     public static final String LOG_TAG = MovieAdapter.class.getName();
 
@@ -86,7 +90,7 @@ public class DiscoveryActivity extends AppCompatActivity
 
     private void setupRecyclerView() {
         adapter = new MovieAdapter(this, movieData);
-        GridLayoutManager mGridLayoutManager = new GridLayoutManager(this, calculateNoOfColumns(this));
+         mGridLayoutManager = new GridLayoutManager(this, calculateNoOfColumns(this));
         recyclerView.setLayoutManager(mGridLayoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -107,7 +111,7 @@ public class DiscoveryActivity extends AppCompatActivity
 
     private void loadMovies(String sortCriteria) {
 
-        Log.e("system", sortCriteria);
+
         try {
 
             MovieService apiService =
@@ -231,5 +235,27 @@ public class DiscoveryActivity extends AppCompatActivity
 
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
+        savedRecyclerViewState = mGridLayoutManager.onSaveInstanceState();
+        outState.putParcelable(LIST_STATE,savedRecyclerViewState);
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if(savedInstanceState != null)
+            savedRecyclerViewState = savedInstanceState.getParcelable(LIST_STATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+
+    }
 }
