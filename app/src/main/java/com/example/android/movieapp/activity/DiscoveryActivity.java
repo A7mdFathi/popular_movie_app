@@ -56,15 +56,13 @@ public class DiscoveryActivity extends AppCompatActivity
 
 
     private static final String LIST_STATE = "list-state";
-    private Parcelable savedRecyclerViewLayoutState;
+
     private static final String BUNDLE_RECYCLER_LAYOUT = "recycler-layout";
 
     private GridLayoutManager mGridLayoutManager;
 
     MainViewModel viewModel;
     public static final String LOG_TAG = MovieAdapter.class.getName();
-
-    int columns;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,14 +75,8 @@ public class DiscoveryActivity extends AppCompatActivity
 
         adapter = new MovieAdapter(this, movieData);
         recyclerView.setAdapter(adapter);
-//        configChanged();
-      columns=  calculateNoOfColumns(this);
-        if (savedInstanceState == null) {
-            mGridLayoutManager = new GridLayoutManager(this, columns);
-            recyclerView.setLayoutManager(mGridLayoutManager);
-        }
-
-
+        mGridLayoutManager = new GridLayoutManager(this, calculateNoOfColumns(this));
+        recyclerView.setLayoutManager(mGridLayoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
@@ -94,15 +86,6 @@ public class DiscoveryActivity extends AppCompatActivity
 
     }
 
-//    public void configChanged() {
-//
-//        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-//            columns = 2;
-//        } else {
-//
-//            columns = 4;
-//        }
-//    }
 
     public static int calculateNoOfColumns(Context context) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
