@@ -1,5 +1,6 @@
 package com.example.android.movieapp.activity;
 
+import android.app.ProgressDialog;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -52,13 +53,11 @@ public class DiscoveryActivity extends AppCompatActivity
     SwipeRefreshLayout refreshLayout;
 
     private MovieAdapter adapter;
-    private ArrayList<Movie> movieData = new ArrayList<>();
-
-
-    private GridLayoutManager mGridLayoutManager;
+    private List<Movie> movieData = new ArrayList<>();
 
     MainViewModel viewModel;
     public static final String LOG_TAG = MovieAdapter.class.getName();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,20 +65,32 @@ public class DiscoveryActivity extends AppCompatActivity
         setContentView(R.layout.activity_descovery_screen);
         ButterKnife.bind(this);
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 
-        adapter = new MovieAdapter(this, movieData);
-        recyclerView.setAdapter(adapter);
-        mGridLayoutManager = new GridLayoutManager(this, calculateNoOfColumns(this));
-        recyclerView.setLayoutManager(mGridLayoutManager);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        setupRecyclerView();
 
         setupSharedPreferences(sharedPreferences);
 
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
 
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                setupSharedPreferences(sharedPreferences);
+                refreshLayout.setRefreshing(false);
+            }
+        });
+
+    }
+
+    private void setupRecyclerView() {
+        adapter = new MovieAdapter(this, movieData);
+        GridLayoutManager mGridLayoutManager = new GridLayoutManager(this, calculateNoOfColumns(this));
+        recyclerView.setLayoutManager(mGridLayoutManager);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(adapter);
     }
 
 
@@ -88,7 +99,7 @@ public class DiscoveryActivity extends AppCompatActivity
         float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
         int scalingFactor = 200;
         int noOfColumns = (int) (dpWidth / scalingFactor);
-        if(noOfColumns < 2)
+        if (noOfColumns < 2)
             noOfColumns = 2;
         return noOfColumns;
     }
@@ -96,16 +107,16 @@ public class DiscoveryActivity extends AppCompatActivity
 
     private void loadMovies(String sortCriteria) {
 
-Log.e("system",sortCriteria);
+        Log.e("system", sortCriteria);
         try {
 
             MovieService apiService =
                     Client.getClient().create(MovieService.class);
-            Call<MovieResponse> call = apiService.getMovies(sortCriteria,BuildConfig.THE_MOVIE_DB_API_TOKEN);
+            Call<MovieResponse> call = apiService.getMovies(sortCriteria, BuildConfig.THE_MOVIE_DB_API_TOKEN);
             call.enqueue(new Callback<MovieResponse>() {
 
                 @Override
-                public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+                public void onResponse(@NonNull Call<MovieResponse> call, @NonNull Response<MovieResponse> response) {
                     if (response.body() != null) {
                         List<Movie> movieList = response.body().getResults();
 
@@ -115,7 +126,7 @@ Log.e("system",sortCriteria);
                 }
 
                 @Override
-                public void onFailure(Call<MovieResponse> call, Throwable t) {
+                public void onFailure(@NonNull Call<MovieResponse> call, @NonNull Throwable t) {
 
                     Log.d("Error", t.getMessage());
                     Toast.makeText(DiscoveryActivity.this, "Error fetching data!", Toast.LENGTH_SHORT).show();
@@ -159,7 +170,7 @@ Log.e("system",sortCriteria);
     protected void onDestroy() {
         super.onDestroy();
 
-        android.support.v7.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        PreferenceManager.getDefaultSharedPreferences(this)
                 .unregisterOnSharedPreferenceChangeListener(this);
     }
 
@@ -204,11 +215,8 @@ Log.e("system",sortCriteria);
 
     }
 
-
-
     private void setupSharedPreferences(SharedPreferences sharedPreferences) {
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String prefValue = sharedPreferences.getString(this.getString(R.string.pref_sort_order_key),
                 this.getString(R.string.pref_sort_order_popular));
         if (prefValue.equals(this.getString(R.string.pref_sort_order_popular))) {
@@ -221,6 +229,7 @@ Log.e("system",sortCriteria);
             displayFavorites();
         }
 
-
     }
+
+
 }
