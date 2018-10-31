@@ -53,12 +53,13 @@ public class DiscoveryActivity extends AppCompatActivity
     SwipeRefreshLayout refreshLayout;
 
     private MovieAdapter adapter;
-    private List<Movie> movieData = new ArrayList<>();
+    private ArrayList<Movie> movieData = new ArrayList<>();
 
     private final String DATA_STATE = "saved_state";
-    private final String LIST_STATE = "saved_state";
+    private final String LIST_STATE = "recycler_state";
     private Parcelable savedRecyclerViewState;
     GridLayoutManager mGridLayoutManager;
+
     MainViewModel viewModel;
     public static final String LOG_TAG = MovieAdapter.class.getName();
 
@@ -89,8 +90,9 @@ public class DiscoveryActivity extends AppCompatActivity
     }
 
     private void setupRecyclerView() {
-        adapter = new MovieAdapter(this, movieData);
+
         mGridLayoutManager = new GridLayoutManager(this, calculateNoOfColumns(this));
+        adapter = new MovieAdapter(this, movieData);
         recyclerView.setLayoutManager(mGridLayoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -122,9 +124,12 @@ public class DiscoveryActivity extends AppCompatActivity
                 @Override
                 public void onResponse(@NonNull Call<MovieResponse> call, @NonNull Response<MovieResponse> response) {
                     if (response.body() != null) {
+                        movieData.clear();
                         List<Movie> movieList = response.body().getResults();
 
                         adapter.setMovieList(movieList);
+
+                        movieData = (ArrayList<Movie>) movieList;
 
                     }
                 }
@@ -235,21 +240,26 @@ public class DiscoveryActivity extends AppCompatActivity
 
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    protected void onSaveInstanceState(Bundle state) {
 
+
+        // Save list state
         savedRecyclerViewState = mGridLayoutManager.onSaveInstanceState();
-        outState.putParcelable(LIST_STATE, savedRecyclerViewState);
+        state.putParcelable(LIST_STATE, savedRecyclerViewState);
+        Log.d(LOG_TAG,"onSaveInstanceState");
 
+        super.onSaveInstanceState(state);
     }
 
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
+    protected void onRestoreInstanceState(Bundle state) {
+        super.onRestoreInstanceState(state);
 
-        if (savedInstanceState != null)
-            savedRecyclerViewState = savedInstanceState.getParcelable(LIST_STATE);
+
+        if(state != null) {
+            savedRecyclerViewState = state.getParcelable(LIST_STATE);
+            Log.d(LOG_TAG,"onRestoreInstanceState");
+        }
+
     }
 
     @Override
@@ -258,6 +268,7 @@ public class DiscoveryActivity extends AppCompatActivity
 
         if (savedRecyclerViewState != null) {
             mGridLayoutManager.onRestoreInstanceState(savedRecyclerViewState);
+            Log.d(LOG_TAG,"onResume");
         }
     }
 }
