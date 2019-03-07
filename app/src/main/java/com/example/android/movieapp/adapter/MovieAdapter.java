@@ -29,26 +29,35 @@ import butterknife.ButterKnife;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MyViewHolder> {
 
-    private Context mContext;
-    private List<Movie> movieList;
+    private static final String TAG = MovieAdapter.class.getSimpleName();
 
-    public MovieAdapter(Context mContext, List<Movie> movieList) {
-        this.mContext = mContext;
-        this.movieList = movieList;
+    final private ListItemClickListener mOnClickListener;
+
+    List<Movie> movies;
+
+    public MovieAdapter(List<Movie> movies, ListItemClickListener mOnClickListener) {
+        this.movies = movies;
+        this.mOnClickListener = mOnClickListener;
+
     }
 
     public void setMovieList(List<Movie> movieList) {
+        movies.clear();
+        movies = movieList;
+    }
 
-        this.movieList = movieList;
-        notifyDataSetChanged();
 
+    public interface ListItemClickListener {
+        void onListItemClick(int clickedItemIndex);
     }
 
     @NonNull
     @Override
-    public MovieAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.movie_card, parent, false);
+    public MovieAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
+        Context context = viewGroup.getContext();
+        int layout = R.layout.movie_card;
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View view = inflater.inflate(layout, viewGroup, false);
 
         return new MyViewHolder(view);
     }
@@ -56,49 +65,50 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MyViewHolder
     @Override
     public void onBindViewHolder(@NonNull MovieAdapter.MyViewHolder holder, int position) {
 
-        holder.title.setText(movieList.get(position).getOriginalTitle());
-        String vote = movieList.get(position).getVoteAverage();
-        holder.userRating.setText(vote);
-
-        String baseImageUrl = "http://image.tmdb.org/t/p/w500";
-        String poster = baseImageUrl + movieList.get(position).getPosterPath();
-        String backdropPath = baseImageUrl + movieList.get(position).getBackdropPath();
-        Glide.with(mContext)
-                .load(poster)
-                .into(holder.thumbnail);
+        holder.bind(position);
     }
 
     @Override
     public int getItemCount() {
-        return movieList.size();
+        return movies.size();
     }
 
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
+    class MyViewHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener {
 
 
-        @BindView(R.id.title_card) TextView title;
-        @BindView(R.id.userrating_card)TextView userRating;
-        @BindView(R.id.thumbnail) ImageView thumbnail;
+        @BindView(R.id.title_card)
+        TextView title;
+        @BindView(R.id.userrating_card)
+        TextView userRating;
+        @BindView(R.id.thumbnail)
+        ImageView thumbnail;
 
-        public MyViewHolder(View view) {
-            super(view);
-            ButterKnife.bind(this,view);
+        MyViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
 
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    int pos = getAdapterPosition();
-                    if (pos != RecyclerView.NO_POSITION) {
-                        Movie clickDataItem = movieList.get(pos);
-                        Intent intent = new Intent(mContext, DetailActivity.class);
-                        intent.putExtra("movieitem", clickDataItem);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        mContext.startActivity(intent);
-                        Toast.makeText(view.getContext(), "you clicked " + clickDataItem.getOriginalTitle(), Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
+            itemView.setOnClickListener(this);
+
+
+        }
+
+        void bind(int pos) {
+            title.setText(movies.get(pos).getOriginalTitle());
+            userRating.setText(movies.get(pos).getVoteAverage());
+
+            String baseImageUrl = "http://image.tmdb.org/t/p/w500";
+            String poster = baseImageUrl + movies.get(pos).getPosterPath();
+            Glide.with(itemView.getContext())
+                    .load(poster)
+                    .into(thumbnail);
+        }
+
+        @Override
+        public void onClick(View view) {
+            int clickedPosition = getAdapterPosition();
+            mOnClickListener.onListItemClick(clickedPosition);
         }
     }
 }

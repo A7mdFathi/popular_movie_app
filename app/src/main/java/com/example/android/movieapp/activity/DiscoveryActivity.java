@@ -45,7 +45,8 @@ import android.support.v7.preference.PreferenceManager;
 
 
 public class DiscoveryActivity extends AppCompatActivity
-        implements SharedPreferences.OnSharedPreferenceChangeListener {
+        implements SharedPreferences.OnSharedPreferenceChangeListener,
+        MovieAdapter.ListItemClickListener {
 
     @BindView(R.id.recycler_view)
     RecyclerView recyclerView;
@@ -92,7 +93,7 @@ public class DiscoveryActivity extends AppCompatActivity
     private void setupRecyclerView() {
 
         mGridLayoutManager = new GridLayoutManager(this, calculateNoOfColumns(this));
-        adapter = new MovieAdapter(this, movieData);
+        adapter = new MovieAdapter(movieData, this);
         recyclerView.setLayoutManager(mGridLayoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -242,8 +243,6 @@ public class DiscoveryActivity extends AppCompatActivity
     }
 
     protected void onSaveInstanceState(Bundle state) {
-
-
         // Save list state
         savedRecyclerViewState = mGridLayoutManager.onSaveInstanceState();
         state.putParcelable(LIST_STATE, savedRecyclerViewState);
@@ -271,5 +270,16 @@ public class DiscoveryActivity extends AppCompatActivity
             mGridLayoutManager.onRestoreInstanceState(savedRecyclerViewState);
             Log.d(LOG_TAG,"onResume");
         }
+    }
+
+    @Override
+    public void onListItemClick(int clickedItemIndex) {
+        Movie clickDataItem = movieData.get(clickedItemIndex);
+        Intent intent = new Intent(DiscoveryActivity.this, DetailActivity.class);
+        intent.putExtra("movieitem", clickDataItem);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        Toast.makeText(this, "you clicked " + clickDataItem.getOriginalTitle(), Toast.LENGTH_SHORT).show();
+
     }
 }
