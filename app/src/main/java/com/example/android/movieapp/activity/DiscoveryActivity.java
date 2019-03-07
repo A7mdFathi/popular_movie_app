@@ -64,6 +64,7 @@ public class DiscoveryActivity extends AppCompatActivity
     MainViewModel viewModel;
     public static final String LOG_TAG = MovieAdapter.class.getName();
 
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +72,7 @@ public class DiscoveryActivity extends AppCompatActivity
         setContentView(R.layout.activity_descovery_screen);
         ButterKnife.bind(this);
 
-        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         setupRecyclerView();
 
@@ -83,7 +83,6 @@ public class DiscoveryActivity extends AppCompatActivity
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                setupSharedPreferences(sharedPreferences);
                 refreshLayout.setRefreshing(false);
             }
         });
@@ -113,7 +112,6 @@ public class DiscoveryActivity extends AppCompatActivity
 
 
     private void loadMovies(String sortCriteria) {
-
 
         try {
 
@@ -181,10 +179,15 @@ public class DiscoveryActivity extends AppCompatActivity
     protected void onDestroy() {
         super.onDestroy();
 
-        PreferenceManager.getDefaultSharedPreferences(this)
-                .unregisterOnSharedPreferenceChangeListener(this);
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+    }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -246,7 +249,7 @@ public class DiscoveryActivity extends AppCompatActivity
         // Save list state
         savedRecyclerViewState = mGridLayoutManager.onSaveInstanceState();
         state.putParcelable(LIST_STATE, savedRecyclerViewState);
-        Log.d(LOG_TAG,"onSaveInstanceState");
+        Log.d(LOG_TAG, "onSaveInstanceState");
 
         super.onSaveInstanceState(state);
     }
@@ -255,9 +258,9 @@ public class DiscoveryActivity extends AppCompatActivity
         super.onRestoreInstanceState(state);
 
 
-        if(state != null) {
+        if (state != null) {
             savedRecyclerViewState = state.getParcelable(LIST_STATE);
-            Log.d(LOG_TAG,"onRestoreInstanceState");
+            Log.d(LOG_TAG, "onRestoreInstanceState");
         }
 
     }
@@ -268,12 +271,13 @@ public class DiscoveryActivity extends AppCompatActivity
 
         if (savedRecyclerViewState != null) {
             mGridLayoutManager.onRestoreInstanceState(savedRecyclerViewState);
-            Log.d(LOG_TAG,"onResume");
+            Log.d(LOG_TAG, "onResume");
         }
     }
 
     @Override
     public void onListItemClick(int clickedItemIndex) {
+
         Movie clickDataItem = movieData.get(clickedItemIndex);
         Intent intent = new Intent(DiscoveryActivity.this, DetailActivity.class);
         intent.putExtra("movieitem", clickDataItem);

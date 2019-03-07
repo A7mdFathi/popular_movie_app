@@ -18,60 +18,65 @@ import java.util.List;
 
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewViewHolde> {
 
-    private Context mContext;
-    private List<Review> reviewList;
+    private static final String TAG = ReviewAdapter.class.getSimpleName();
 
-    public ReviewAdapter(Context mContext, List<Review> reviewList) {
-        this.mContext = mContext;
-        this.reviewList = reviewList;
+    final private ReviewItemClickListener mOnClickListener;
+
+    List<Review> reviews;
+
+
+    public ReviewAdapter(List<Review> reviews, ReviewItemClickListener mOnClickListener) {
+        this.reviews = reviews;
+        this.mOnClickListener = mOnClickListener;
+
+    }
+
+    public interface ReviewItemClickListener {
+        void onReviewItemClick(int clickedItemIndex);
     }
 
     @NonNull
     @Override
-    public ReviewAdapter.ReviewViewHolde onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ReviewAdapter.ReviewViewHolde onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
 
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.review_item, parent, false);
+        Context context = viewGroup.getContext();
+        int layout = R.layout.review_item;
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View view = inflater.inflate(layout, viewGroup, false);
+
         return new ReviewViewHolde(view);
-    }
-
-    public void setReviewList(List<Review> reviewList) {
-
-        this.reviewList = reviewList;
-        notifyDataSetChanged();
     }
 
     @Override
     public void onBindViewHolder(@NonNull ReviewAdapter.ReviewViewHolde holder, int position) {
-        holder.autherText.setText(reviewList.get(position).getAuthor());
-        holder.contentText.setText(reviewList.get(position).getContent());
+        holder.bind(position);
     }
 
     @Override
     public int getItemCount() {
-        return reviewList.size();
+        return reviews.size();
     }
 
-    class ReviewViewHolde extends RecyclerView.ViewHolder {
-        TextView autherText, contentText;
+    class ReviewViewHolde extends RecyclerView.ViewHolder
+            implements View.OnClickListener {
 
-        public ReviewViewHolde(View itemView) {
+        TextView contentText;
+
+        ReviewViewHolde(View itemView) {
             super(itemView);
 
-            autherText = (TextView) itemView.findViewById(R.id.auther_review_tv);
             contentText = (TextView) itemView.findViewById(R.id.content_tv);
+            itemView.setOnClickListener(this);
+        }
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        String mUrl = reviewList.get(position).getUrl();
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(mUrl));
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        mContext.startActivity(intent);
-                    }
-                }
-            });
+        void bind(int position) {
+            contentText.setText(reviews.get(position).getContent());
+        }
+
+        @Override
+        public void onClick(View view) {
+            int clickedPosition = getAdapterPosition();
+            mOnClickListener.onReviewItemClick(clickedPosition);
         }
     }
 }

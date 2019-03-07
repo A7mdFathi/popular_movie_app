@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.android.movieapp.R;
+import com.example.android.movieapp.model.Review;
 import com.example.android.movieapp.model.Trailer;
 
 import java.util.List;
@@ -21,55 +22,62 @@ import java.util.List;
 
 public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerViewHolde> {
 
-    Context mContext;
-    List<Trailer> trailerList;
+    private static final String TAG = ReviewAdapter.class.getSimpleName();
 
-    public TrailerAdapter(Context mContext, List<Trailer> trailerList) {
-        this.mContext = mContext;
-        this.trailerList = trailerList;
+    final private TrailerItemClickListener mOnClickListener;
+
+    List<Trailer> trailers;
+
+    public TrailerAdapter(List<Trailer> trailers, TrailerItemClickListener mOnClickListener) {
+        this.trailers = trailers;
+        this.mOnClickListener = mOnClickListener;
+    }
+
+    public interface TrailerItemClickListener {
+        void onTrailerItemClick(int clickedItemIndex);
     }
 
     @NonNull
     @Override
-    public TrailerAdapter.TrailerViewHolde onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.trailer_item, parent, false);
+    public TrailerAdapter.TrailerViewHolde onCreateViewHolder(@NonNull ViewGroup viewGroup, int viewType) {
+
+        Context context = viewGroup.getContext();
+        int layout = R.layout.trailer_item;
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View view = inflater.inflate(layout, viewGroup, false);
+
         return new TrailerViewHolde(view);
     }
 
-    public void setTrailerList(List<Trailer> trailerList) {
-        this.trailerList = trailerList;
-        notifyDataSetChanged();
-    }
 
     @Override
     public void onBindViewHolder(@NonNull TrailerAdapter.TrailerViewHolde holder, int position) {
-
+        holder.bind(position);
     }
 
     @Override
     public int getItemCount() {
-        return trailerList.size();
+        return trailers.size();
     }
 
-    class TrailerViewHolde extends RecyclerView.ViewHolder {
+    class TrailerViewHolde extends RecyclerView.ViewHolder
+            implements View.OnClickListener {
 
 
-        public TrailerViewHolde(View itemView) {
+        TrailerViewHolde(View itemView) {
             super(itemView);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    int pos = getAdapterPosition();
-                    if (pos != RecyclerView.NO_POSITION) {
-                        String videoId = trailerList.get(pos).getKey();
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + videoId));
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        mContext.startActivity(intent);
-                    }
-                }
-            });
+            itemView.setOnClickListener(this);
+        }
 
+        @Override
+        public void onClick(View view) {
+            int clickedPosition = getAdapterPosition();
+            mOnClickListener.onTrailerItemClick(clickedPosition);
+        }
+
+        void bind(int position) {
+            ///
         }
     }
 }

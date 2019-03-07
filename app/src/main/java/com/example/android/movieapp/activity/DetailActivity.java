@@ -4,6 +4,7 @@ package com.example.android.movieapp.activity;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -48,7 +49,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity implements
+        ReviewAdapter.ReviewItemClickListener, TrailerAdapter.TrailerItemClickListener {
 
 
     List<Trailer> trailerList;
@@ -96,7 +98,6 @@ public class DetailActivity extends AppCompatActivity {
         movieRecievedFromIntent();
 
 
-
     }
 
 
@@ -134,7 +135,7 @@ public class DetailActivity extends AppCompatActivity {
             loadTrailers(movie_id);
             loadReviews(movie_id);
             final Favorite favorite = new Favorite(movie_id, movieTitle, rating, poster, synopsis, backdropPath, dateRelease);
-             viewModelFactory = new AddFavoriteViewModelFactory(mDb, movie_id);
+            viewModelFactory = new AddFavoriteViewModelFactory(mDb, movie_id);
 
             favoriteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -160,8 +161,8 @@ public class DetailActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(@NonNull Call<ReviewResponse> call, @NonNull Response<ReviewResponse> response) {
                     if (response.body() != null) {
-                        List<Review> reviews = response.body().getResults();
-                        recyclerReview.setAdapter(new ReviewAdapter(getApplicationContext(), reviews));
+                        reviewList = response.body().getResults();
+                        recyclerReview.setAdapter(new ReviewAdapter(reviewList, DetailActivity.this));
                         reviewAdapter.notifyDataSetChanged();
 
                     }
@@ -182,13 +183,13 @@ public class DetailActivity extends AppCompatActivity {
 
     private void initViews() {
         trailerList = new ArrayList<>();
-        trailerAdapter = new TrailerAdapter(this, trailerList);
+        trailerAdapter = new TrailerAdapter(trailerList, this);
 
         recyclerTrailer.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerTrailer.setAdapter(trailerAdapter);
 
         reviewList = new ArrayList<>();
-        reviewAdapter = new ReviewAdapter(this, reviewList);
+        reviewAdapter = new ReviewAdapter(reviewList, this);
 
         recyclerReview.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerReview.setAdapter(reviewAdapter);
@@ -210,8 +211,8 @@ public class DetailActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(@NonNull Call<TrailerResponse> call, @NonNull Response<TrailerResponse> response) {
                     if (response.body() != null) {
-                        List<Trailer> trailers = response.body().getResults();
-                        recyclerTrailer.setAdapter(new TrailerAdapter(getApplicationContext(), trailers));
+                        trailerList = response.body().getResults();
+                        recyclerTrailer.setAdapter(new TrailerAdapter(trailerList, DetailActivity.this));
                         trailerAdapter.notifyDataSetChanged();
 
 
@@ -278,4 +279,21 @@ public class DetailActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onReviewItemClick(int clickedItemIndex) {
+
+        String mUrl = reviewList.get(clickedItemIndex).getUrl();
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(mUrl));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onTrailerItemClick(int clickedItemIndex) {
+
+        String videoId = trailerList.get(clickedItemIndex).getKey();
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + videoId));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
 }
