@@ -118,6 +118,7 @@ public class DiscoveryActivity extends AppCompatActivity
 
             MovieService apiService =
                     Client.getClient().create(MovieService.class);
+
             Call<MovieResponse> call = apiService.getMovies(sortCriteria, BuildConfig.THE_MOVIE_DB_API_TOKEN);
             call.enqueue(new Callback<MovieResponse>() {
 
