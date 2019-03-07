@@ -1,18 +1,13 @@
 package com.example.android.movieapp.api;
 
 import com.example.android.movieapp.model.MovieResponse;
-import com.example.android.movieapp.model.Review;
 import com.example.android.movieapp.model.ReviewResponse;
 import com.example.android.movieapp.model.TrailerResponse;
-
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
-/**
- * Created by ahmed on 04/09/18.
- */
 
 public interface MovieService {
 
