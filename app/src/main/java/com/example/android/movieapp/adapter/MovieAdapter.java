@@ -44,6 +44,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MyViewHolder
     public void setMovieList(List<Movie> movieList) {
         movies.clear();
         movies = movieList;
+        notifyDataSetChanged();
     }
 
 
